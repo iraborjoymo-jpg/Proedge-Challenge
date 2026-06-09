@@ -19,7 +19,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .btn-primary:hover { background: #004182; }
 .btn-sm { padding: 5px 11px; font-size: 12px; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-input[type="text"], input[type="email"], input[type="tel"], input[type="url"] { width: 100%; padding: 9px 12px; border-radius: 8px; border: 0.5px solid rgba(0,0,0,0.2); background: #fff; color: #1a1a1a; font-size: 13px; font-family: inherit; margin-bottom: 10px; outline: none; }
+input[type="text"], input[type="email"], input[type="tel"], input[type="url"], input[type="password"] { width: 100%; padding: 9px 12px; border-radius: 8px; border: 0.5px solid rgba(0,0,0,0.2); background: #fff; color: #1a1a1a; font-size: 13px; font-family: inherit; margin-bottom: 10px; outline: none; }
 input:focus { border-color: #0A66C2; box-shadow: 0 0 0 3px rgba(10,102,194,0.12); }
 .badge { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; padding: 3px 8px; border-radius: 6px; font-weight: 500; }
 .badge-success { background: #EAF3DE; color: #27500A; }
@@ -85,7 +85,7 @@ select { padding: 7px 10px; border-radius: 8px; border: 0.5px solid rgba(0,0,0,0
     <p>30 days of consistent LinkedIn posting. Build your brand and stay accountable with your cohort.</p>
     <div style="display:flex;gap:28px;justify-content:center;margin-bottom:1.75rem;">
       <div><div style="font-size:20px;font-weight:500;">30</div><div style="font-size:11px;color:#888;">Days</div></div>
-      <div><div style="font-size:20px;font-weight:500;">Jun–Jul</div><div style="font-size:11px;color:#888;">2025</div></div>
+      <div><div style="font-size:20px;font-weight:500;">Jun–Jul</div><div style="font-size:11px;color:#888;">2026</div></div>
     </div>
   </div>
   <div class="card">
@@ -101,7 +101,7 @@ select { padding: 7px 10px; border-radius: 8px; border: 0.5px solid rgba(0,0,0,0
       Already joined? <button style="background:none;border:none;color:#0A66C2;cursor:pointer;font-size:12px;font-weight:500;padding:0;" onclick="toggleLogin()">Sign in with email →</button>
     </div>
     <div style="margin-top:6px;text-align:center;">
-      <button style="background:none;border:none;color:#aaa;cursor:pointer;font-size:11px;padding:0;" onclick="goAdmin()">Admin dashboard</button>
+      <button style="background:none;border:none;color:#bbb;cursor:pointer;font-size:11px;padding:0;" onclick="showAdminLogin()">Admin access</button>
     </div>
   </div>
   <div id="login-area" style="display:none;">
@@ -146,10 +146,10 @@ select { padding: 7px 10px; border-radius: 8px; border: 0.5px solid rgba(0,0,0,0
       <p style="font-size:12px;color:#3B6D11;">Great work — come back tomorrow for Day <span id="next-day"></span>.</p>
     </div>
     <div class="day-grid" id="p-grid"></div>
-    <div style="display:flex;gap:14px;margin-top:10px;font-size:11px;color:#888;">
+    <div style="display:flex;gap:14px;margin-top:10px;font-size:11px;color:#888;flex-wrap:wrap;">
       <span><span style="display:inline-block;width:9px;height:9px;background:#97C459;border-radius:2px;margin-right:3px;"></span>Submitted</span>
       <span><span style="display:inline-block;width:9px;height:9px;background:#F09595;border-radius:2px;margin-right:3px;"></span>Missed</span>
-      <span><span style="display:inline-block;width:9px;height:9px;border:2px solid #0A66C2;border-radius:2px;margin-right:3px;"></span>Today</span>
+      <span><span style="display:inline-block;width:9px;height:9px;border:2px solid #0A66C2;border-radius:2px;margin-right:3px;"></span>Today (click to submit)</span>
     </div>
   </div>
 </div>
@@ -163,6 +163,19 @@ select { padding: 7px 10px; border-radius: 8px; border: 0.5px solid rgba(0,0,0,0
     <div style="display:flex;gap:8px;justify-content:flex-end;">
       <button class="btn btn-sm" onclick="closeModal()">Cancel</button>
       <button class="btn btn-primary btn-sm" id="submit-btn" onclick="submitLink()"><i class="ti ti-check"></i> Submit</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN LOGIN MODAL -->
+<div class="modal-overlay" id="admin-login-modal" style="display:none;" onclick="closeAdminLoginBg(event)">
+  <div class="modal">
+    <h3>Admin access</h3>
+    <p class="sub">Enter the admin password to continue.</p>
+    <input type="password" id="admin-pwd" placeholder="Password" style="margin-bottom:12px;" onkeydown="if(event.key==='Enter')checkAdminPwd()" />
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn btn-sm" onclick="closeAdminLogin()">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="checkAdminPwd()"><i class="ti ti-lock-open"></i> Enter</button>
     </div>
   </div>
 </div>
@@ -189,7 +202,8 @@ select { padding: 7px 10px; border-radius: 8px; border: 0.5px solid rgba(0,0,0,0
 </div>
 
 <script>
-const API = 'https://script.google.com/macros/s/AKfycbwu-fsV10hw-6LDY6be-JlfK-lxraXM5CUGn4f77MtQ3cwxBi6ROpgLSqrN0s5F9X5q/exec';
+const API = 'https://script.google.com/macros/s/AKfycbzRd76PjNNERqokMahEIk9XnNdw6Ec0FQ6lz28dmojxKsA1rjrYYHGHHpblwXf0pMlj/exec';
+const ADMIN_PASSWORD = 'proedge2026';
 
 const DAYS = [
   {n:1,label:'Jun 15'},{n:2,label:'Jun 16'},{n:3,label:'Jun 17'},{n:4,label:'Jun 18'},{n:5,label:'Jun 19'},
@@ -208,7 +222,7 @@ const COLORS = [
 
 const DAY_DATES = (() => {
   const offsets = [0,1,2,3,4,7,8,9,10,11,14,15,16,17,18,21,22,23,24,25,28,29,30,31,32,35,36,37,38,39];
-  return offsets.map(o => { const d = new Date('2025-06-15'); d.setDate(d.getDate()+o); return d; });
+  return offsets.map(o => { const d = new Date('2026-06-15'); d.setDate(d.getDate()+o); return d; });
 })();
 
 function getTodayDayNum() {
@@ -237,7 +251,7 @@ function showToast(msg, err) {
   t.style.background=err?'#791F1F':'#27500A';
   t.style.color=err?'#F7C1C1':'#C0DD97';
   t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),3000);
+  setTimeout(()=>t.classList.remove('show'),3500);
 }
 
 function setBtn(id, loading, html) {
@@ -247,8 +261,10 @@ function setBtn(id, loading, html) {
 }
 
 async function api(params) {
-  const r=await fetch(API+'?'+new URLSearchParams(params).toString());
-  return r.json();
+  const url = API+'?'+new URLSearchParams(params).toString();
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('HTTP '+res.status);
+  return res.json();
 }
 
 function toggleLogin() {
@@ -259,6 +275,27 @@ function toggleLogin() {
 function signOut() {
   currentUser=null; currentLinks={};
   showScreen('screen-join');
+}
+
+function showAdminLogin() {
+  document.getElementById('admin-pwd').value='';
+  document.getElementById('admin-login-modal').style.display='flex';
+  setTimeout(()=>document.getElementById('admin-pwd').focus(),50);
+}
+function closeAdminLogin() { document.getElementById('admin-login-modal').style.display='none'; }
+function closeAdminLoginBg(e) { if(e.target.id==='admin-login-modal') closeAdminLogin(); }
+
+function checkAdminPwd() {
+  const pwd = document.getElementById('admin-pwd').value.trim();
+  if (pwd === ADMIN_PASSWORD) {
+    closeAdminLogin();
+    showScreen('screen-admin');
+    loadAdminData();
+  } else {
+    showToast('Incorrect password.', true);
+    document.getElementById('admin-pwd').value='';
+    document.getElementById('admin-pwd').focus();
+  }
 }
 
 async function joinChallenge() {
@@ -275,7 +312,7 @@ async function joinChallenge() {
       loadParticipant();
       showToast(res.exists?'Welcome back, '+name.split(' ')[0]+'!':'You\'re in! Welcome to the challenge.');
     } else { showToast(res.error||'Something went wrong.',true); }
-  } catch(e){showToast('Could not connect. Check your internet.',true);}
+  } catch(e){ showToast('Could not connect to the database. Please try again.',true); }
   setBtn('join-btn',false,'<i class="ti ti-brand-linkedin"></i> Join the challenge');
 }
 
@@ -287,7 +324,7 @@ async function loginUser() {
     const res=await api({action:'login',email});
     if(res.success){currentUser=res.data;currentLinks=getLinks(res.data);loadParticipant();}
     else{showToast('Email not found. Please register first.',true);}
-  } catch(e){showToast('Could not connect.',true);}
+  } catch(e){showToast('Could not connect. Please try again.',true);}
   setBtn('login-btn',false,'<i class="ti ti-login"></i> Continue');
 }
 
@@ -356,7 +393,6 @@ function openModal() {
   document.getElementById('submit-modal').style.display='flex';
   setTimeout(()=>document.getElementById('modal-url').focus(),50);
 }
-
 function closeModal(){document.getElementById('submit-modal').style.display='none';}
 function closeModalBg(e){if(e.target.id==='submit-modal')closeModal();}
 
@@ -373,22 +409,17 @@ async function submitLink() {
       closeModal(); loadParticipant();
       showToast('Post submitted for Day '+todayDayNum+'! Great work.');
     } else {showToast(res.error||'Submission failed.',true);}
-  } catch(e){showToast('Could not connect to sheet.',true);}
+  } catch(e){showToast('Could not connect. Please try again.',true);}
   setBtn('submit-btn',false,'<i class="ti ti-check"></i> Submit');
 }
 
-async function goAdmin() {
-  showScreen('screen-admin');
-  await loadAdminData();
-}
-
 async function loadAdminData() {
-  document.getElementById('tab-overview').innerHTML='<div style="padding:2rem;text-align:center;"><span class="spinner spinner-dark"></span></div>';
+  document.getElementById('tab-overview').innerHTML='<div style="padding:2rem;text-align:center;"><span class="spinner spinner-dark"></span> Loading…</div>';
   try {
     const res=await api({action:'getAll'});
     if(res.success){adminData=res.data;renderOverview();}
-    else{document.getElementById('tab-overview').innerHTML='<p style="color:#A32D2D;font-size:13px;">Failed to load data.</p>';}
-  } catch(e){document.getElementById('tab-overview').innerHTML='<p style="color:#A32D2D;font-size:13px;">Could not connect.</p>';}
+    else{document.getElementById('tab-overview').innerHTML='<p style="color:#A32D2D;font-size:13px;padding:1rem;">Failed to load: '+res.error+'</p>';}
+  } catch(e){document.getElementById('tab-overview').innerHTML='<p style="color:#A32D2D;font-size:13px;padding:1rem;">Could not connect to sheet. Try refreshing.</p>';}
 }
 
 function getStats(row) {
