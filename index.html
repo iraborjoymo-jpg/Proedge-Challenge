@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ProEdge LinkedIn Challenge</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css" />
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F5F5F3; min-height: 100vh; color: #1a1a1a; }
+.app { max-width: 520px; margin: 0 auto; padding: 1.5rem; position: relative; }
+.screen { display: none; }
+.screen.active { display: block; }
+.card { background: #fff; border: 0.5px solid rgba(0,0,0,0.12); border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; border: 0.5px solid rgba(0,0,0,0.2); background: #fff; color: #1a1a1a; font-size: 13px; font-weight: 500; cursor: pointer; font-family: inherit; transition: background 0.12s; }
+.btn:hover { background: #f0f0ee; }
+.btn:active { transform: scale(0.98); }
+.btn-primary { background: #0A66C2; color: #fff; border-color: transparent; }
+.btn-primary:hover { background: #004182; }
+.btn-sm { padding: 5px 11px; font-size: 12px; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+input[type="text"], input[type="email"], input[type="tel"], input[type="url"] { width: 100%; padding: 9px 12px; border-radius: 8px; border: 0.5px solid rgba(0,0,0,0.2); background: #fff; color: #1a1a1a; font-size: 13px; font-family: inherit; margin-bottom: 10px; outline: none; }
+input:focus { border-color: #0A66C2; box-shadow: 0 0 0 3px rgba(10,102,194,0.12); }
+.badge { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; padding: 3px 8px; border-radius: 6px; font-weight: 500; }
+.badge-success { background: #EAF3DE; color: #27500A; }
+.badge-warning { background: #FAEEDA; color: #633806; }
+.badge-danger { background: #FCEBEB; color: #791F1F; }
+.badge-info { background: #E6F1FB; color: #0C447C; }
+.stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 1rem; }
+.stat { background: #F5F5F3; border-radius: 8px; padding: 10px 12px; }
+.stat-label { font-size: 11px; color: #666; margin-bottom: 3px; }
+.stat-value { font-size: 20px; font-weight: 500; }
+.nav { display: flex; gap: 6px; margin-bottom: 1.25rem; flex-wrap: wrap; }
+.nav-tab { padding: 6px 13px; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer; border: 0.5px solid transparent; color: #666; background: none; font-family: inherit; }
+.nav-tab.active { background: #fff; border-color: rgba(0,0,0,0.12); color: #1a1a1a; }
+.day-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; }
+.day-cell { aspect-ratio: 1; border-radius: 8px; border: 0.5px solid rgba(0,0,0,0.12); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 9px; background: #fff; color: #888; }
+.day-cell.submitted { background: #EAF3DE; border-color: #97C459; color: #3B6D11; }
+.day-cell.missed { background: #FCEBEB; border-color: #F09595; color: #A32D2D; }
+.day-cell.today-pending { border: 2px solid #0A66C2; background: #E6F1FB; color: #0C447C; cursor: pointer; }
+.day-cell.today-pending:hover { background: #B5D4F4; }
+.day-cell.today-done { background: #EAF3DE; border: 2px solid #639922; color: #3B6D11; }
+.day-cell.future { opacity: 0.3; }
+.day-cell.locked { opacity: 0.55; }
+.p-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 0.5px solid rgba(0,0,0,0.08); }
+.p-row:last-child { border-bottom: none; }
+.avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; flex-shrink: 0; }
+.progress-bar { flex: 1; height: 5px; background: #eee; border-radius: 3px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 3px; background: #639922; }
+.progress-fill.warn { background: #EF9F27; }
+.progress-fill.low { background: #E24B4A; }
+.section-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; color: #999; margin-bottom: 10px; }
+.top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+.top-bar h2 { font-size: 17px; font-weight: 500; }
+.toast { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); font-size: 13px; padding: 9px 18px; border-radius: 8px; font-weight: 500; z-index: 999; white-space: nowrap; opacity: 0; transition: opacity 0.2s; pointer-events: none; }
+.toast.show { opacity: 1; }
+.spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; }
+.spinner-dark { border-color: rgba(0,0,0,0.12); border-top-color: #333; }
+@keyframes spin { to { transform: rotate(360deg); } }
+select { padding: 7px 10px; border-radius: 8px; border: 0.5px solid rgba(0,0,0,0.2); background: #fff; color: #1a1a1a; font-size: 12px; font-family: inherit; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 1rem; }
+.modal { background: #fff; border-radius: 12px; padding: 1.5rem; width: 100%; max-width: 360px; border: 0.5px solid rgba(0,0,0,0.12); }
+.modal h3 { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
+.modal .sub { font-size: 12px; color: #666; margin-bottom: 14px; }
+.hero { text-align: center; padding: 2.5rem 1rem 1.5rem; }
+.hero h1 { font-size: 24px; font-weight: 500; margin-bottom: 8px; }
+.hero p { font-size: 13px; color: #666; max-width: 300px; margin: 0 auto 1.5rem; line-height: 1.6; }
+.li-logo { width: 52px; height: 52px; background: #E6F1FB; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; font-size: 22px; font-weight: 700; color: #0A66C2; }
+.banner { border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; }
+.banner-blue { background: #E6F1FB; border: 0.5px solid #85B7EB; }
+.banner-green { background: #EAF3DE; border: 0.5px solid #97C459; }
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<div class="app">
+
+<!-- JOIN SCREEN -->
+<div class="screen active" id="screen-join">
+  <div class="hero">
+    <div class="li-logo">in</div>
+    <h1>ProEdge LinkedIn Challenge</h1>
+    <p>30 days of consistent LinkedIn posting. Build your brand and stay accountable with your cohort.</p>
+    <div style="display:flex;gap:28px;justify-content:center;margin-bottom:1.75rem;">
+      <div><div style="font-size:20px;font-weight:500;">30</div><div style="font-size:11px;color:#888;">Days</div></div>
+      <div><div style="font-size:20px;font-weight:500;">Jun–Jul</div><div style="font-size:11px;color:#888;">2025</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <p class="section-label">Register for the challenge</p>
+    <input type="text" id="j-name" placeholder="Full name" />
+    <input type="email" id="j-email" placeholder="Email address" />
+    <input type="tel" id="j-phone" placeholder="WhatsApp number" />
+    <input type="url" id="j-linkedin" placeholder="LinkedIn profile URL" />
+    <button class="btn btn-primary" id="join-btn" style="width:100%;justify-content:center;padding:10px;" onclick="joinChallenge()">
+      <i class="ti ti-brand-linkedin"></i> Join the challenge
+    </button>
+    <div style="margin-top:12px;text-align:center;font-size:12px;color:#888;">
+      Already joined? <button style="background:none;border:none;color:#0A66C2;cursor:pointer;font-size:12px;font-weight:500;padding:0;" onclick="toggleLogin()">Sign in with email →</button>
+    </div>
+    <div style="margin-top:6px;text-align:center;">
+      <button style="background:none;border:none;color:#aaa;cursor:pointer;font-size:11px;padding:0;" onclick="goAdmin()">Admin dashboard</button>
+    </div>
+  </div>
+  <div id="login-area" style="display:none;">
+    <div class="card">
+      <p class="section-label">Sign in</p>
+      <input type="email" id="login-email" placeholder="Your registered email" />
+      <button class="btn btn-primary" id="login-btn" style="width:100%;justify-content:center;" onclick="loginUser()">
+        <i class="ti ti-login"></i> Continue
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- PARTICIPANT SCREEN -->
+<div class="screen" id="screen-participant">
+  <div class="top-bar">
+    <div>
+      <h2 id="p-greeting">Welcome</h2>
+      <span style="font-size:12px;color:#888;" id="p-sub"></span>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center;">
+      <span class="badge badge-info" id="p-streak"></span>
+      <button class="btn btn-sm" onclick="signOut()" title="Sign out"><i class="ti ti-logout"></i></button>
+    </div>
+  </div>
+  <div class="stat-row">
+    <div class="stat"><div class="stat-label">Posts submitted</div><div class="stat-value" id="p-done">0</div></div>
+    <div class="stat"><div class="stat-label">Days missed</div><div class="stat-value" style="color:#A32D2D;" id="p-missed">0</div></div>
+    <div class="stat"><div class="stat-label">Completion</div><div class="stat-value" id="p-pct">—</div></div>
+  </div>
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <p class="section-label" style="margin:0;">30-day calendar</p>
+      <span id="today-label" style="font-size:11px;color:#888;"></span>
+    </div>
+    <div id="today-banner" class="banner banner-blue" style="display:none;">
+      <p style="font-size:13px;font-weight:500;color:#0C447C;margin-bottom:2px;" id="today-banner-title">Today is Day X</p>
+      <p style="font-size:12px;color:#185FA5;">Click the highlighted day below to submit your LinkedIn post.</p>
+    </div>
+    <div id="done-banner" class="banner banner-green" style="display:none;">
+      <p style="font-size:13px;font-weight:500;color:#27500A;">Today done! <i class="ti ti-check"></i></p>
+      <p style="font-size:12px;color:#3B6D11;">Great work — come back tomorrow for Day <span id="next-day"></span>.</p>
+    </div>
+    <div class="day-grid" id="p-grid"></div>
+    <div style="display:flex;gap:14px;margin-top:10px;font-size:11px;color:#888;">
+      <span><span style="display:inline-block;width:9px;height:9px;background:#97C459;border-radius:2px;margin-right:3px;"></span>Submitted</span>
+      <span><span style="display:inline-block;width:9px;height:9px;background:#F09595;border-radius:2px;margin-right:3px;"></span>Missed</span>
+      <span><span style="display:inline-block;width:9px;height:9px;border:2px solid #0A66C2;border-radius:2px;margin-right:3px;"></span>Today</span>
+    </div>
+  </div>
+</div>
+
+<!-- SUBMIT MODAL -->
+<div class="modal-overlay" id="submit-modal" style="display:none;" onclick="closeModalBg(event)">
+  <div class="modal">
+    <h3 id="modal-title">Submit your post</h3>
+    <p class="sub" id="modal-sub">Paste your LinkedIn post URL for today.</p>
+    <input type="url" id="modal-url" placeholder="https://www.linkedin.com/posts/..." style="margin-bottom:12px;" />
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn btn-sm" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary btn-sm" id="submit-btn" onclick="submitLink()"><i class="ti ti-check"></i> Submit</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN SCREEN -->
+<div class="screen" id="screen-admin">
+  <div class="top-bar">
+    <h2>Admin dashboard</h2>
+    <div style="display:flex;gap:6px;">
+      <button class="btn btn-sm" id="refresh-btn" onclick="loadAdminData()"><i class="ti ti-refresh"></i> Refresh</button>
+      <button class="btn btn-sm" onclick="showScreen('screen-join')"><i class="ti ti-arrow-left"></i> Back</button>
+    </div>
+  </div>
+  <div class="nav">
+    <button class="nav-tab active" onclick="adminTab('overview',this)">Overview</button>
+    <button class="nav-tab" onclick="adminTab('detail',this)">Per participant</button>
+    <button class="nav-tab" onclick="adminTab('atrisk',this)">At risk</button>
+  </div>
+  <div id="tab-overview"></div>
+  <div id="tab-detail" style="display:none;"></div>
+  <div id="tab-atrisk" style="display:none;"></div>
+</div>
+
+</div>
+
+<script>
+const API = 'https://script.google.com/macros/s/AKfycbwu-fsV10hw-6LDY6be-JlfK-lxraXM5CUGn4f77MtQ3cwxBi6ROpgLSqrN0s5F9X5q/exec';
+
+const DAYS = [
+  {n:1,label:'Jun 15'},{n:2,label:'Jun 16'},{n:3,label:'Jun 17'},{n:4,label:'Jun 18'},{n:5,label:'Jun 19'},
+  {n:6,label:'Jun 22'},{n:7,label:'Jun 23'},{n:8,label:'Jun 24'},{n:9,label:'Jun 25'},{n:10,label:'Jun 26'},
+  {n:11,label:'Jun 29'},{n:12,label:'Jun 30'},{n:13,label:'Jul 1'},{n:14,label:'Jul 2'},{n:15,label:'Jul 3'},
+  {n:16,label:'Jul 6'},{n:17,label:'Jul 7'},{n:18,label:'Jul 8'},{n:19,label:'Jul 9'},{n:20,label:'Jul 10'},
+  {n:21,label:'Jul 13'},{n:22,label:'Jul 14'},{n:23,label:'Jul 15'},{n:24,label:'Jul 16'},{n:25,label:'Jul 17'},
+  {n:26,label:'Jul 20'},{n:27,label:'Jul 21'},{n:28,label:'Jul 22'},{n:29,label:'Jul 23'},{n:30,label:'Jul 24'}
+];
+
+const COLORS = [
+  {bg:'#EEEDFE',color:'#3C3489'},{bg:'#E1F5EE',color:'#085041'},
+  {bg:'#FAEEDA',color:'#633806'},{bg:'#FAECE7',color:'#712B13'},
+  {bg:'#E6F1FB',color:'#0C447C'},{bg:'#FBEAF0',color:'#72243E'},
+];
+
+const DAY_DATES = (() => {
+  const offsets = [0,1,2,3,4,7,8,9,10,11,14,15,16,17,18,21,22,23,24,25,28,29,30,31,32,35,36,37,38,39];
+  return offsets.map(o => { const d = new Date('2025-06-15'); d.setDate(d.getDate()+o); return d; });
+})();
+
+function getTodayDayNum() {
+  const now = new Date(); now.setHours(0,0,0,0);
+  for (let i=0;i<DAY_DATES.length;i++) {
+    const d = new Date(DAY_DATES[i]); d.setHours(0,0,0,0);
+    if (now.getTime()===d.getTime()) return DAYS[i].n;
+  }
+  return null;
+}
+
+function getDayCol(n) { return 'Day '+n+' Link ('+DAYS[n-1].label+')'; }
+function getLinks(row) { const l={}; DAYS.forEach(d=>{l[d.n]=row[getDayCol(d.n)]||'';}); return l; }
+function initials(name) { return (name||'').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
+
+let currentUser=null, currentLinks={}, adminData=[], todayDayNum=null;
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function showToast(msg, err) {
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.style.background=err?'#791F1F':'#27500A';
+  t.style.color=err?'#F7C1C1':'#C0DD97';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+function setBtn(id, loading, html) {
+  const b=document.getElementById(id); if(!b)return;
+  b.disabled=loading;
+  b.innerHTML=loading?'<span class="spinner"></span> Loading…':html;
+}
+
+async function api(params) {
+  const r=await fetch(API+'?'+new URLSearchParams(params).toString());
+  return r.json();
+}
+
+function toggleLogin() {
+  const a=document.getElementById('login-area');
+  a.style.display=a.style.display==='none'?'':'none';
+}
+
+function signOut() {
+  currentUser=null; currentLinks={};
+  showScreen('screen-join');
+}
+
+async function joinChallenge() {
+  const name=document.getElementById('j-name').value.trim();
+  const email=document.getElementById('j-email').value.trim();
+  const phone=document.getElementById('j-phone').value.trim();
+  const linkedin=document.getElementById('j-linkedin').value.trim();
+  if(!name||!email){showToast('Please enter your name and email.',true);return;}
+  setBtn('join-btn',true,'');
+  try {
+    const res=await api({action:'register',name,email,phone,linkedin});
+    if(res.success){
+      currentUser=res.data; currentLinks=getLinks(res.data);
+      loadParticipant();
+      showToast(res.exists?'Welcome back, '+name.split(' ')[0]+'!':'You\'re in! Welcome to the challenge.');
+    } else { showToast(res.error||'Something went wrong.',true); }
+  } catch(e){showToast('Could not connect. Check your internet.',true);}
+  setBtn('join-btn',false,'<i class="ti ti-brand-linkedin"></i> Join the challenge');
+}
+
+async function loginUser() {
+  const email=document.getElementById('login-email').value.trim();
+  if(!email){showToast('Enter your email.',true);return;}
+  setBtn('login-btn',true,'');
+  try {
+    const res=await api({action:'login',email});
+    if(res.success){currentUser=res.data;currentLinks=getLinks(res.data);loadParticipant();}
+    else{showToast('Email not found. Please register first.',true);}
+  } catch(e){showToast('Could not connect.',true);}
+  setBtn('login-btn',false,'<i class="ti ti-login"></i> Continue');
+}
+
+function loadParticipant() {
+  todayDayNum=getTodayDayNum();
+  const first=(currentUser['Full Name']||'').split(' ')[0];
+  document.getElementById('p-greeting').textContent='Hey, '+first+' 👋';
+  document.getElementById('p-sub').textContent='ProEdge LinkedIn Challenge — 30 days';
+  const tdn=todayDayNum||31;
+  const past=DAYS.filter(d=>d.n<tdn);
+  const submitted=past.filter(d=>currentLinks[d.n]).length+(todayDayNum&&currentLinks[todayDayNum]?1:0);
+  const missed=past.filter(d=>!currentLinks[d.n]).length;
+  const total=past.length+(todayDayNum?1:0);
+  const pct=total>0?Math.round(submitted/total*100):0;
+  document.getElementById('p-done').textContent=submitted;
+  document.getElementById('p-missed').textContent=missed;
+  document.getElementById('p-pct').textContent=pct+'%';
+  let streak=0;
+  for(let i=(todayDayNum||1)-1;i>=1;i--){if(currentLinks[i])streak++;else break;}
+  document.getElementById('p-streak').innerHTML='<i class="ti ti-flame"></i> '+streak+' streak';
+  if(todayDayNum){
+    document.getElementById('today-label').textContent='Today: Day '+todayDayNum+' ('+DAYS[todayDayNum-1].label+')';
+    if(currentLinks[todayDayNum]){
+      document.getElementById('today-banner').style.display='none';
+      document.getElementById('done-banner').style.display='';
+      document.getElementById('next-day').textContent=todayDayNum+1;
+    } else {
+      document.getElementById('today-banner').style.display='';
+      document.getElementById('today-banner-title').textContent='Today is Day '+todayDayNum+' — '+DAYS[todayDayNum-1].label;
+      document.getElementById('done-banner').style.display='none';
+    }
+  } else {
+    document.getElementById('today-label').textContent='No challenge day today';
+    document.getElementById('today-banner').style.display='none';
+    document.getElementById('done-banner').style.display='none';
+  }
+  renderGrid();
+  showScreen('screen-participant');
+}
+
+function renderGrid() {
+  const tdn=todayDayNum;
+  document.getElementById('p-grid').innerHTML=DAYS.map(d=>{
+    let cls,icon='';
+    if(d.n===tdn){
+      cls=currentLinks[d.n]?'day-cell today-done':'day-cell today-pending';
+      icon=currentLinks[d.n]?'<i class="ti ti-check" style="font-size:13px;"></i>':'<i class="ti ti-upload" style="font-size:12px;"></i>';
+    } else if(d.n<(tdn||31)){
+      cls='day-cell locked '+(currentLinks[d.n]?'submitted':'missed');
+      icon=currentLinks[d.n]?'<i class="ti ti-check" style="font-size:12px;"></i>':'<i class="ti ti-x" style="font-size:11px;"></i>';
+    } else { cls='day-cell future'; }
+    const clickable=d.n===tdn&&!currentLinks[d.n];
+    return `<div class="${cls}" ${clickable?'onclick="openModal()"':''} title="Day ${d.n} — ${d.label}">
+      <span style="font-size:8px;opacity:0.75;margin-bottom:1px;">${d.label}</span>
+      ${icon||'<span style="font-size:10px;font-weight:600;">'+d.n+'</span>'}
+    </div>`;
+  }).join('');
+}
+
+function openModal() {
+  if(!todayDayNum)return;
+  const d=DAYS[todayDayNum-1];
+  document.getElementById('modal-title').textContent='Day '+todayDayNum+' — '+d.label;
+  document.getElementById('modal-sub').textContent='Paste the URL of your LinkedIn post for today.';
+  document.getElementById('modal-url').value='';
+  document.getElementById('submit-modal').style.display='flex';
+  setTimeout(()=>document.getElementById('modal-url').focus(),50);
+}
+
+function closeModal(){document.getElementById('submit-modal').style.display='none';}
+function closeModalBg(e){if(e.target.id==='submit-modal')closeModal();}
+
+async function submitLink() {
+  const link=document.getElementById('modal-url').value.trim();
+  if(!link.startsWith('http')){showToast('Please paste a valid LinkedIn URL.',true);return;}
+  const email=currentUser['Email'];
+  const dayCol=getDayCol(todayDayNum);
+  setBtn('submit-btn',true,'');
+  try {
+    const res=await api({action:'submitLink',email,dayCol,link});
+    if(res.success){
+      currentLinks[todayDayNum]=link;
+      closeModal(); loadParticipant();
+      showToast('Post submitted for Day '+todayDayNum+'! Great work.');
+    } else {showToast(res.error||'Submission failed.',true);}
+  } catch(e){showToast('Could not connect to sheet.',true);}
+  setBtn('submit-btn',false,'<i class="ti ti-check"></i> Submit');
+}
+
+async function goAdmin() {
+  showScreen('screen-admin');
+  await loadAdminData();
+}
+
+async function loadAdminData() {
+  document.getElementById('tab-overview').innerHTML='<div style="padding:2rem;text-align:center;"><span class="spinner spinner-dark"></span></div>';
+  try {
+    const res=await api({action:'getAll'});
+    if(res.success){adminData=res.data;renderOverview();}
+    else{document.getElementById('tab-overview').innerHTML='<p style="color:#A32D2D;font-size:13px;">Failed to load data.</p>';}
+  } catch(e){document.getElementById('tab-overview').innerHTML='<p style="color:#A32D2D;font-size:13px;">Could not connect.</p>';}
+}
+
+function getStats(row) {
+  const links=getLinks(row);
+  const tdn=getTodayDayNum()||31;
+  const past=DAYS.filter(d=>d.n<tdn);
+  const sub=past.filter(d=>links[d.n]).length+(links[tdn]?1:0);
+  const missed=past.filter(d=>!links[d.n]).length;
+  const total=past.length+(getTodayDayNum()?1:0);
+  const pct=total>0?Math.round(sub/total*100):0;
+  let streak=0;
+  for(let i=(getTodayDayNum()||1)-1;i>=1;i--){if(links[i])streak++;else break;}
+  return {sub,missed,pct,streak,links};
+}
+
+function renderOverview() {
+  const total=adminData.length;
+  const avg=total?Math.round(adminData.map(r=>getStats(r).pct).reduce((a,b)=>a+b,0)/total):0;
+  const risk=adminData.filter(r=>getStats(r).pct<60).length;
+  const tdn=getTodayDayNum();
+  const rows=adminData.map((r,i)=>{
+    const s=getStats(r);const c=COLORS[i%COLORS.length];
+    const fc=s.pct>=75?'':s.pct>=50?'warn':'low';
+    const bc=s.pct>=75?'badge-success':s.pct>=50?'badge-warning':'badge-danger';
+    const tb=tdn?(s.links[tdn]?'<span class="badge badge-success" style="font-size:10px;">Today done</span>':'<span class="badge badge-warning" style="font-size:10px;">Pending</span>'):'';
+    return `<div class="p-row">
+      <div class="avatar" style="background:${c.bg};color:${c.color};">${initials(r['Full Name'])}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px;flex-wrap:wrap;">
+          <span style="font-size:13px;font-weight:500;">${r['Full Name']||'—'}</span>
+          <span class="badge ${bc}">${s.pct}%</span>${tb}
+        </div>
+        <div class="progress-bar"><div class="progress-fill ${fc}" style="width:${s.pct}%;"></div></div>
+      </div>
+      <div style="text-align:right;font-size:11px;color:#888;white-space:nowrap;margin-left:8px;">${s.sub}/${DAYS.filter(d=>d.n<=(tdn||0)).length}<br>posts</div>
+    </div>`;
+  }).join('');
+  document.getElementById('tab-overview').innerHTML=`
+    <div class="stat-row">
+      <div class="stat"><div class="stat-label">Enrolled</div><div class="stat-value">${total}</div></div>
+      <div class="stat"><div class="stat-label">Avg completion</div><div class="stat-value">${avg}%</div></div>
+      <div class="stat"><div class="stat-label">At risk</div><div class="stat-value" style="color:#A32D2D;">${risk}</div></div>
+    </div>
+    <div class="card"><p class="section-label" style="margin-bottom:12px;">All participants</p>${rows||'<p style="font-size:13px;color:#888;">No participants yet.</p>'}</div>`;
+}
+
+function adminTab(tab,btn) {
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  ['overview','detail','atrisk'].forEach(t=>document.getElementById('tab-'+t).style.display=t===tab?'':'none');
+  if(tab==='detail')renderDetailTab();
+  if(tab==='atrisk')renderAtRisk();
+}
+
+function renderDetailTab() {
+  const opts=adminData.map((r,i)=>`<option value="${i}">${r['Full Name']||r['Email']}</option>`).join('');
+  document.getElementById('tab-detail').innerHTML=`<div style="display:flex;gap:8px;margin-bottom:1rem;align-items:center;"><select id="dsel" onchange="renderDetailView()">${opts}</select></div><div id="dview"></div>`;
+  renderDetailView();
+}
+
+function renderDetailView() {
+  const sel=document.getElementById('dsel');if(!sel)return;
+  const r=adminData[parseInt(sel.value)];if(!r)return;
+  const s=getStats(r);const c=COLORS[parseInt(sel.value)%COLORS.length];
+  const tdn=getTodayDayNum()||31;
+  const grid=DAYS.map(d=>{
+    let cls,icon='';
+    if(d.n===tdn){cls=s.links[d.n]?'day-cell today-done':'day-cell today-pending';icon=s.links[d.n]?'<i class="ti ti-check" style="font-size:11px;"></i>':'';}
+    else if(d.n<tdn){cls='day-cell locked '+(s.links[d.n]?'submitted':'missed');icon=s.links[d.n]?'<i class="ti ti-check" style="font-size:11px;"></i>':'<i class="ti ti-x" style="font-size:10px;"></i>';}
+    else{cls='day-cell future';}
+    const oc=s.links[d.n]?`onclick="window.open('${s.links[d.n]}','_blank')"`:'' ;
+    return `<div class="${cls}" ${oc} style="${s.links[d.n]?'cursor:pointer;':''}" title="Day ${d.n} ${d.label}">
+      <span style="font-size:8px;opacity:0.7;">${d.label}</span>
+      ${icon||'<span style="font-size:9px;font-weight:600;">'+d.n+'</span>'}
+    </div>`;
+  }).join('');
+  const missed=DAYS.filter(d=>d.n<tdn&&!s.links[d.n]);
+  document.getElementById('dview').innerHTML=`<div class="card">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+      <div class="avatar" style="width:42px;height:42px;font-size:14px;background:${c.bg};color:${c.color};">${initials(r['Full Name'])}</div>
+      <div><p style="font-weight:500;font-size:14px;">${r['Full Name']||'—'}</p>
+      <p style="font-size:12px;color:#888;">${r['Email']||'—'} · ${r['WhatsApp Number']||'—'}</p>
+      ${r['LinkedIn Profile']?`<a href="${r['LinkedIn Profile']}" target="_blank" style="font-size:11px;color:#0A66C2;">LinkedIn ↗</a>`:''}</div>
+    </div>
+    <div class="stat-row" style="margin-bottom:14px;">
+      <div class="stat"><div class="stat-label">Posts</div><div class="stat-value" style="font-size:17px;">${s.sub}</div></div>
+      <div class="stat"><div class="stat-label">Missed</div><div class="stat-value" style="font-size:17px;color:#A32D2D;">${s.missed}</div></div>
+      <div class="stat"><div class="stat-label">Streak</div><div class="stat-value" style="font-size:17px;">${s.streak} 🔥</div></div>
+    </div>
+    <p class="section-label" style="margin-bottom:8px;">Calendar — click green days to view post</p>
+    <div class="day-grid">${grid}</div>
+    ${missed.length?`<div style="margin-top:10px;padding:9px 12px;background:#FCEBEB;border-radius:8px;"><p style="font-size:11px;color:#A32D2D;font-weight:500;">Missed: ${missed.map(d=>d.label).join(', ')}</p></div>`:''}
+  </div>`;
+}
+
+function renderAtRisk() {
+  const risky=adminData.filter(r=>getStats(r).pct<60);
+  if(!risky.length){document.getElementById('tab-atrisk').innerHTML='<div class="card" style="text-align:center;padding:2rem;"><i class="ti ti-mood-happy" style="font-size:28px;color:#27500A;"></i><p style="margin-top:8px;color:#888;">No one is at risk right now.</p></div>';return;}
+  document.getElementById('tab-atrisk').innerHTML=risky.map(r=>{
+    const s=getStats(r);const c=COLORS[adminData.indexOf(r)%COLORS.length];
+    const tdn=getTodayDayNum()||31;
+    const missed=DAYS.filter(d=>d.n<tdn&&!s.links[d.n]);
+    return `<div class="card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <div class="avatar" style="background:${c.bg};color:${c.color};">${initials(r['Full Name'])}</div>
+        <div style="flex:1;"><p style="font-weight:500;font-size:13px;">${r['Full Name']||'—'}</p>
+        <p style="font-size:12px;color:#888;">${s.pct}% · ${s.missed} missed</p></div>
+        <span class="badge badge-danger">${s.pct<40?'High risk':'At risk'}</span>
+      </div>
+      <p style="font-size:11px;color:#888;">Missed: <span style="color:#A32D2D;font-weight:500;">${missed.map(d=>d.label).join(', ')||'None'}</span></p>
+      <p style="font-size:11px;color:#888;margin-top:3px;">WhatsApp: <span style="font-weight:500;">${r['WhatsApp Number']||'—'}</span></p>
+    </div>`;
+  }).join('');
+}
+</script>
+</body>
+</html>
