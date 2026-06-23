@@ -298,12 +298,20 @@ function checkAdminPwd() {
   }
 }
 
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/.test(email);
+}
+
 async function joinChallenge() {
   const name=document.getElementById('j-name').value.trim();
-  const email=document.getElementById('j-email').value.trim();
+  const email=document.getElementById('j-email').value.trim().toLowerCase();
   const phone=document.getElementById('j-phone').value.trim();
   const linkedin=document.getElementById('j-linkedin').value.trim();
   if(!name||!email){showToast('Please enter your name and email.',true);return;}
+  if(!isValidEmail(email)){showToast('Please enter a valid email address (check spelling, e.g. gmail.com).',true);return;}
+  if(!phone){showToast('Please enter your WhatsApp number.',true);return;}
+  if(!linkedin){showToast('Please enter your LinkedIn profile URL.',true);return;}
+  if(!linkedin.includes('linkedin.com')){showToast('Please enter a valid LinkedIn profile URL.',true);return;}
   setBtn('join-btn',true,'');
   try {
     const res=await api({action:'register',name,email,phone,linkedin});
@@ -317,8 +325,9 @@ async function joinChallenge() {
 }
 
 async function loginUser() {
-  const email=document.getElementById('login-email').value.trim();
+  const email=document.getElementById('login-email').value.trim().toLowerCase();
   if(!email){showToast('Enter your email.',true);return;}
+  if(!isValidEmail(email)){showToast('Please enter a valid email address.',true);return;}
   setBtn('login-btn',true,'');
   try {
     const res=await api({action:'login',email});
